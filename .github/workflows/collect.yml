@@ -1,0 +1,55 @@
+name: Collect repository analytics
+
+on:
+  schedule:
+    # GitHub's traffic API only refreshes daily internally, but polling a few times a
+    # day catches the data as soon as it updates and keeps "last synchronized" honest.
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {} # "Sync now" from the dashboard's README / Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-analytics-collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: collector/package-lock.json
+
+      - name: Install collector dependencies
+        working-directory: collector
+        run: npm ci
+
+      - name: Run collector
+        working-directory: collector
+        env:
+          GH_ANALYTICS_TOKEN: ${{ secrets.GH_ANALYTICS_TOKEN }}
+          GH_ANALYTICS_REPO: ${{ github.repository }}
+          HISTORY_PATH: ${{ github.workspace }}/data/history.json
+        run: npm run collect
+
+      - name: Commit updated dataset if it changed
+        run: |
+          if git diff --quiet -- data/history.json; then
+            echo "No changes to history.json — skipping commit."
+            exit 0
+          fi
+          git config user.name "repo-analytics-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/history.json
+          git commit -m "chore(analytics): sync traffic data [skip ci]"
+          git push

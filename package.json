@@ -1,0 +1,14 @@
+{
+  "name": "repo-analytics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lifetime GitHub repository analytics: a collector that beats the 14-day traffic window, and a premium dashboard to view it.",
+  "scripts": {
+    "setup": "npm install --prefix collector && npm install --prefix dashboard",
+    "collect": "npm run collect --prefix collector",
+    "dev": "npm run dev --prefix dashboard",
+    "build": "npm run build --prefix dashboard",
+    "test": "npm test --prefix collector",
+    "typecheck": "npm run typecheck --prefix collector && cd dashboard && npx tsc --noEmit"
+  }
+}

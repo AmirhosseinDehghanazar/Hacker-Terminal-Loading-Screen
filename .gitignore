@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+package-lock.json.bak
+
+# Build output
+dashboard/dist/
+collector/dist/
+
+# Env files (never commit real secrets)
+.env
+.env.local
+*.env
+!.env.example
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.log
+
+# The dashboard copies the live dataset here at build time; the source of truth
+# lives in /data/history.json, not this generated copy.
+dashboard/public/history.json
